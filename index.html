@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.88.1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+	<link rel="stylesheet" href="static/css/custom.css">
+	<link rel="stylesheet" href="static/css/normalize.css">
+	
+	<title>StableForm-TTS</title>
+	<link rel="stylesheet" href="static/css/bootstrap.min.css">
+	<link rel="stylesheet" href="static/css/main.css" />
+</head>
+
+<body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+
+<div class="container" >
+<header role="banner">
+</header>
+<main role="main">
+<article itemscope itemtype="https://schema.org/BlogPosting">
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<div class="text-center">
+		<h1>StableForm-TTS:</h1>
+		<h3>Improving Robustness of Diffusion-Based Zero-Shot Speech Synthesis via <span style="font-weight: 760">Stable</span> <span style="font-weight: 760">Form</span>ant Generation</h3>
+		<div style="margin-top: 15px;" class="affiliation">
+			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://changjinhan.github.io" target="_blank" class="author-link">Changjin Han</a></span>
+			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">Seokgi Lee</a></span>
+			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">Gyuhyeon Nam</a></span>
+			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">Gyeongsu Chae</a></span>
+			<p style="font-size: 1.1em;">DeepBrain AI Inc.</p>
+		</div>
+		<div style="margin-top: 15px;">
+			<p class="links">
+				<a target="_blank" href="https://arxiv.org/abs/2409.09311" class="links"><span class="icon"><i class="ai ai-arxiv"></i></span> <span>arXiv</span></a>
+			</p>
+		</div>
+		
+	</div>
+	<br>
+	<p>
+        <b>Abstract.</b> 
+		Diffusion models have achieved remarkable success in text-to-speech (TTS), even in zero-shot scenarios. 
+		Recent efforts aim to address the trade-off between inference speed and sound quality, often considered the primary drawback of diffusion models. 
+		However, we find a critical mispronunciation issue is being overlooked. Our preliminary study reveals the unstable pronunciation resulting from the diffusion process. 
+		Based on this observation, we introduce StableForm-TTS, a novel zero-shot speech synthesis framework designed to produce robust pronunciation while maintaining the advantages of diffusion modeling. 
+		By pioneering the adoption of source-filter theory in diffusion TTS, we propose an elaborate architecture for stable formant generation. 
+		Experimental results on unseen speakers show that our model outperforms the state-of-the-art method in terms of pronunciation accuracy and naturalness, with comparable speaker similarity. 
+		Moreover, our model demonstrates effective scalability as both data and model sizes increase.
+    </p>
+
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+	<h2 id="model-overview" style="text-align: center;">Model Overview</h2>
+	<body>
+		<p style="text-align: center;">
+			<img src="static/images/overview.png" height="400" width="1200">
+		</p>
+	</body>
+		<p>
+			Overall architecture of StableForm-TTS. 
+			For brevity, the phoneme, pitch, and energy embedding layers are omitted.
+		</p>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">	
+	<h2 id="source-filter-decomposition" style="text-align: center;">Source-Filter Decomposition</h2>
+	
+		<p> 
+			StableForm-TTS synthesizes audio through excitation and formant pathways, and combines them for final output. 
+			Below are inference samples from both seen and unseen datasets.
+		</p>
+
+	<div class="table-responsive pt-3">
+		<table class="table table-hover pt-2">
+			<thead>
+				<tr>
+					<th style="text-align: center">Speaker</th>
+					<th style="text-align: center">Text</th>
+					<th style="text-align: center">Reference</th>
+					<th style="text-align: center">Ground Truth</th>
+					<th style="text-align: center">Excitation (𝜇)</th>
+					<th style="text-align: center">Refined Excitation</th>
+					<th style="text-align: center">Formant</th>
+					<th style="text-align: center">Final Output</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 140px">
+						LibriTTS-R: 1183<br>
+						(seen)
+					</td>
+					<td style="text-align: left;vertical-align:middle;width: 500px">The best physicians in America could do nothing for him.</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/seen/ref/Libri_R_1183_ref_mel.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/seen/ref/Libri_R_1183_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/seen/ref/Libri_R_1183_ref_mel.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/seen/ref/Libri_R_1183_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/seen/mu/Libri_R_1183_generated_mu.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/seen/mu/Libri_R_1183_generated_mu.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/seen/excitation/Libri_R_1183_generated_excitation.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/seen/excitation/Libri_R_1183_generated_excitation.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/seen/formant/Libri_R_1183_generated_formant.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/seen/formant/Libri_R_1183_generated_formant.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/seen/diff/Libri_R_1183_generated_diff.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/seen/diff/Libri_R_1183_generated_diff.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 140px">
+						VCTK: 238<br>
+						(unseen)
+					</td>
+					<td style="text-align: left;vertical-align:middle;width: 500px">Five years later, the deception continued.</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/unseen/ref/49_ref_mel.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/unseen/ref/49_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/unseen/gt/49_gt_mel.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/unseen/gt/49_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/unseen/mu/49_generated_mu.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/unseen/mu/49_generated_mu.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/unseen/excitation/49_generated_excitation.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/unseen/excitation/49_generated_excitation.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/unseen/formant/49_generated_formant.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/unseen/formant/49_generated_formant.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<img src="static/source_filter_decomposition/unseen/diff/49_generated_diff.png" height="60" width="160">
+						<audio controls="controls" style="width: 140px;"><source src="static/source_filter_decomposition/unseen/diff/49_generated_diff.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+	<h2 id="visual-comparison" style="text-align: center;">Visual Comparison</h2>
+	<body>
+		<p style="text-align: center;">
+			<img src="static/images/visual_comparison.png" height="400" width="1200">
+		</p>
+	</body>
+		<p>
+			The examples of pronunciation improvement in zero-shot scenarios. 
+			The text beneath the mel-spectrogram indicates the ASR model’s transcription of the area enclosed within the red dotted box.
+			We use the ML solver with 10 steps on the models trained on LibriTTS-R.
+		</p>
+	<div class="table-responsive pt-3">
+		<table class="table table-hover pt-2">
+			<thead>
+				<tr>
+					<th style="text-align: center">Speaker</th>
+					<th style="text-align: center">Text</th>
+					<th style="text-align: center">Ground Truth</th>
+					<th style="text-align: center">Grad-StyleSpeech</th>
+					<th style="text-align: center">StableForm-TTS (ours)</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">245</td>
+					<td style="text-align: left;vertical-align:middle;width: 500px">We think all other <strong>measures</strong> are not exhausted.</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/gt/107_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/grad-stylespeech/107_gss_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/stableform-tts/107_sf_tts_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">261</td>
+					<td style="text-align: left;vertical-align:middle;width: 500px">Corporate banking <strong>would</strong> be based in Edinburgh.</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/gt/1832_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/grad-stylespeech/1832_gss_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/stableform-tts/1832_sf_tts_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">238</td>
+					<td style="text-align: left;vertical-align:middle;width: 500px">People have been wonderful beyond <strong>belief</strong>.</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/gt/999_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/grad-stylespeech/999_gss_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+					<td style="text-align: center">
+						<audio controls="controls" style="width: 140px;"><source src="static/visual_comparison/stableform-tts/999_sf_tts_audio.wav" autoplay/>Your browser does not support the audio element.</audio>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="zero-shot-samples" style="text-align: center;">Zero-Shot Speech Synthesis</h2>
+		* LT-460: trained on LibriTTS train-clean-460, LT-R: trained on LibriTTS-R
+	<div class="table-responsive pt-3">
+		<table class="table table-hover pt-2">
+			<thead>
+				<tr>
+					<th style="text-align: center">Speaker</th>
+					<th style="text-align: center">Text</th>
+					<th style="text-align: center">Reference</th>
+					<th style="text-align: center">Ground Truth</th>
+					<th style="text-align: center">Ground Truth (voc.)</th>
+					<th style="text-align: center">Grad-StyleSpeech (LT-460)</th>
+					<th style="text-align: center">StableForm-TTS (LT-460)</th>
+					<th style="text-align: center">Grad-StyleSpeech (LT-R)</th>
+					<th style="text-align: center">StableForm-TTS (LT-R)</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td rowspan=8 style="text-align: center;vertical-align:middle;width: 100px">238</td>
+					<td rowspan=8 style="text-align: left;vertical-align:middle;width: 600px">The early physical reports were clear.</td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/ref/1335_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt/1335_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt_voc/1335_gt_voc_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1335_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1335_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1335_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1335_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+			<tbody>
+				<tr>
+					<td rowspan=8 style="text-align: center;vertical-align:middle;width: 100px">248</td>
+					<td rowspan=8 style="text-align: left;vertical-align:middle;width: 600px">Naturally enough, the letter in question was an E.</td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/ref/1188_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt/1188_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt_voc/1188_gt_voc_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/1188_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/1188_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/1188_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/1188_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+			<tbody>
+				<tr>
+					<td rowspan=8 style="text-align: center;vertical-align:middle;width: 100px">302</td>
+					<td rowspan=8 style="text-align: left;vertical-align:middle;width: 600px">Of course we make mistakes, but we don't make too many.</td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/ref/11_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt/11_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt_voc/11_gt_voc_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/11_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/11_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/11_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/11_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+			<tbody>
+				<tr>
+					<td rowspan=8 style="text-align: center;vertical-align:middle;width: 100px">225</td>
+					<td rowspan=8 style="text-align: left;vertical-align:middle;width: 600px">I always felt that I was in control of the match.</td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/ref/207_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt/207_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt_voc/207_gt_voc_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/207_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/207_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/207_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/207_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+			<tbody>
+				<tr>
+					<td rowspan=8 style="text-align: center;vertical-align:middle;width: 100px">347</td>
+					<td rowspan=8 style="text-align: left;vertical-align:middle;width: 600px">Some have accepted it as a miracle without physical explanation.</td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/ref/3205_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt/3205_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td rowspan=8 style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/gt_voc/3205_gt_voc_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_pf_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_pf_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_pf_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">PF 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_pf_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 5<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_ml_5.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 10<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_ml_10.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 50<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_ml_50.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-460/3205_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-460/3205_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/grad-stylespeech/LT-R/3205_gss_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center">ML 100<audio controls="controls" style="width: 140px;"><source src="static/zero_shot_samples/stableform-tts/LT-R/3205_sftts_audio_ml_100.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+			
+		</table>
+	</div>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="ablation-study" style="text-align: center;">Ablation Study</h2>
+	<p>
+		We showcase the samples from the ablation study using the ML solver with 10 steps on the models trained on LibriTTS-R.
+	</p>
+	<div class="table-responsive pt-3">
+		<table class="table table-hover pt-2">
+			<thead>
+				<tr>
+					<th style="text-align: center">Speaker</th>
+					<th style="text-align: center">Text</th>
+					<th style="text-align: center">Reference</th>
+					<th style="text-align: center">Ground Truth</th>
+					<th style="text-align: center">StableForm-TTS (ours)</th>
+					<th style="text-align: center">w/o E-F generators</th>
+					<th style="text-align: center">w/o Energy</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">302</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">The difference in the rainbow depends considerably upon the size of the drops, and the width of the colored band increases as the size of the drop increases.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/ref/3008_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/gt/3008_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/stableform-tts/3008_sftts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_E-F_gen/3008_sftts_no_sfgen_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_energy/3008_sftts_no_energy_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">225</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">The Norsemen considered the rainbow as a bridge over which the gods passed from earth to their home in the sky.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/ref/3326_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/gt/3326_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/stableform-tts/3326_sftts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_E-F_gen/3326_sftts_no_sfgen_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_energy/3326_sftts_no_energy_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">234</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">Yet the performance was not entirely convincing.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/ref/2478_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/gt/2478_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/stableform-tts/2478_sftts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_E-F_gen/2478_sftts_no_sfgen_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_energy/2478_sftts_no_energy_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">248</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">It's also important that they are not seen as a soft option.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/ref/538_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/gt/538_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/stableform-tts/538_sftts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_E-F_gen/538_sftts_no_sfgen_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/ablation_study/wo_energy/538_sftts_no_energy_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="scalability-test" style="text-align: center;">Scalability Test</h2>
+	<p>
+		To examine the scalability of StableForm-TTS, we increase the English training dataset to 19,000 hours by including LibriTTS-R, LJSpeech, DailyTalk, HiFi-TTS, Common Voice, and MLS, 
+		while also doubling the model size to create the StableForm-large version (69.30M). Additionally, we provide several samples for comparing StableForm-large with five publicly available large-scale TTS models.
+		We use the pretrained checkpoint for <a href="https://docs.coqui.ai/en/dev/models/bark.html">Bark</a>, 
+		<a href="https://docs.coqui.ai/en/dev/models/tortoise.html">Tortoise</a>, 
+		<a href="https://docs.coqui.ai/en/dev/models/xtts.html">XTTS-v2</a>, 
+		and <a href="https://docs.coqui.ai/en/dev/inference.html#example-voice-cloning-with-yourtts-in-english-french-and-portuguese">YourTTS</a> 
+		from the Coqui TTS toolkit, while we use the official code for <a href="https://github.com/jasonppy/VoiceCraft">VoiceCraft</a>. 
+	</p>
+	<div class="table-responsive pt-3">
+		<table class="table table-hover pt-2">
+			<thead>
+				<tr>
+					<th style="text-align: center">Speaker</th>
+					<th style="text-align: center">Text</th>
+					<th style="text-align: center">Reference</th>
+					<th style="text-align: center">Ground Truth</th>
+					<th style="text-align: center">StableForm-large (ours)</th>
+					<th style="text-align: center">Bark</th>
+					<th style="text-align: center">Tortoise</th>
+					<th style="text-align: center">VoiceCraft</th>
+					<th style="text-align: center">XTTS-v2</th>
+					<th style="text-align: center">YourTTS</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">261</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">He put some colour into Scottish history.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/1_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/1_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/1_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/1_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/1_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/1_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/xtts-v2/1_xttsv2_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/yourtts/1_yourtts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">302</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">We're just a family working hard, working seven days a week.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/408_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/408_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/408_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/408_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/408_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/408_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/xtts-v2/408_xttsv2_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/yourtts/408_yourtts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">335</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">Clearly, she says, she would never resort to such devices.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/1585_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/1585_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/1585_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/1585_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/1585_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/1585_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/xtts-v2/1585_xttsv2_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/yourtts/1585_yourtts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">326</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">Another suggested the company should carry only pedestrians.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/1672_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/1672_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/1672_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/1672_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/1672_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/1672_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/xtts-v2/1672_xttsv2_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/yourtts/1672_yourtts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align:middle;width: 100px">294</td>
+					<td style="text-align: left;vertical-align:middle;width: 600px">This is a very common type of bow, one showing mainly red and yellow, with little or no green or blue.</td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/2311_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/2311_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/2311_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/2311_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/2311_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/2311_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/xtts-v2/2311_xttsv2_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/yourtts/2311_yourtts_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="scalability-test" style="text-align: center;">Citation</h2>
+	<p>
+		If you want to cite our work, please use:
+	</p>
+	<pre>
+	@article{han2024improving,
+		title={Improving Robustness of Diffusion-Based Zero-Shot Speech Synthesis via Stable Formant Generation},
+		author={Han, Changjin and Lee, Seokgi and Nam, Gyuhyeon and Chae, Gyeongsu},
+		journal={arXiv preprint arXiv:2409.09311},
+		year={2024}
+	}
+	</pre>
+	
+</div>
+
+</article>
+</main>
+<footer>
+	Demo page reference: <a href="https://lifeiteng.github.io/valle/index.html" target="_blank">VALL-E</a>
+	and <a href="https://clam-tts.github.io/" target="_blank">CLaM-TTS</a>
+</footer>
+</div>
+
+</body>
+
+
+
+</html>
