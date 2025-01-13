@@ -30,10 +30,10 @@
 		<h3>Improving Robustness of Diffusion-Based Zero-Shot Speech Synthesis via <span style="font-weight: 760">Stable</span> <span style="font-weight: 760">Form</span>ant Generation</h3>
 		<div style="margin-top: 15px;" class="affiliation">
 			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://changjinhan.github.io" target="_blank" class="author-link">Changjin Han</a></span>
-			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">Seokgi Lee</a></span>
-			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">Gyuhyeon Nam</a></span>
-			<span style="margin-right: 15px; font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">Gyeongsu Chae</a></span>
-			<p style="font-size: 1.1em;">DeepBrain AI Inc.</p>
+			<span style="margin-right: 15px; font-size: 1.1em;">Seokgi Lee</span>
+			<span style="margin-right: 15px; font-size: 1.1em;">Gyuhyeon Nam</span>
+			<span style="margin-right: 15px; font-size: 1.1em;">Gyeongsu Chae</span>
+			<p style="font-size: 1.1em;"><a href="https://www.aistudios.com" target="_blank" class="author-link">DeepBrain AI Inc.</a></p>
 		</div>
 		<div style="margin-top: 15px;">
 			<p class="links">
@@ -593,7 +593,8 @@
 	<h2 id="scalability-test" style="text-align: center;">Scalability Test</h2>
 	<p>
 		To examine the scalability of StableForm-TTS, we increase the English training dataset to 19,000 hours by including LibriTTS-R, LJSpeech, DailyTalk, HiFi-TTS, Common Voice, and MLS, 
-		while also doubling the model size to create the StableForm-large version (69.30M). Additionally, we provide several samples for comparing StableForm-large with five publicly available large-scale TTS models.
+		while also doubling the model size to create the <b>StableForm-large</b> version (69.30M). Furthermore, the GSS-large version (68.13M) was created to verify the effects of scale-up on Grad-StyleSpeech. 
+		We provide several samples for comparing StableForm-large with five publicly available large-scale TTS models.
 		We use the pretrained checkpoint for <a href="https://docs.coqui.ai/en/dev/models/bark.html">Bark</a>, 
 		<a href="https://docs.coqui.ai/en/dev/models/tortoise.html">Tortoise</a>, 
 		<a href="https://docs.coqui.ai/en/dev/models/xtts.html">XTTS-v2</a>, 
@@ -609,6 +610,7 @@
 					<th style="text-align: center">Reference</th>
 					<th style="text-align: center">Ground Truth</th>
 					<th style="text-align: center">StableForm-large (ours)</th>
+					<th style="text-align: center">GSS-large</th>
 					<th style="text-align: center">Bark</th>
 					<th style="text-align: center">Tortoise</th>
 					<th style="text-align: center">VoiceCraft</th>
@@ -623,6 +625,7 @@
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/1_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/1_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/1_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gss-large/1_gss_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/1_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/1_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/1_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
@@ -635,6 +638,7 @@
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/408_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/408_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/408_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gss-large/408_gss_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/408_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/408_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/408_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
@@ -647,6 +651,7 @@
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/1585_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/1585_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/1585_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gss-large/1585_gss_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/1585_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/1585_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/1585_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
@@ -659,6 +664,7 @@
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/1672_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/1672_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/1672_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gss-large/1672_gss_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/1672_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/1672_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/1672_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
@@ -671,6 +677,7 @@
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/ref/2311_ref_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gt/2311_gt_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/stableform-large/2311_sf_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/gss-large/2311_gss_large_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/bark/2311_bark_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/tortoise/2311_tortoise_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
 					<td style="text-align: center;vertical-align:middle"><audio controls="controls" style="width: 140px;"><source src="static/scalability_test/voicecraft/2311_voicecraft_audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
